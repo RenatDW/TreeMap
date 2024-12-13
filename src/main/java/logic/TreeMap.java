@@ -2,13 +2,13 @@ package logic;
 
 import java.util.*;
 
-public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
+public class TreeMap<K extends Comparable<K>, V extends Comparable<V>> implements MyMap<K, V> {
     int size = 0;
     TreeNode<K, V> root;
     TreeNode<K, V> leftSide;
     TreeNode<K, V> rightSide;
 
-    public class TreeNode<K, V> implements Comparable<K> {
+    public class TreeNode<K, V> {
         TreeNode<K, V> leftSide;
         TreeNode<K, V> rightSide;
         K key;
@@ -19,28 +19,24 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
             this.value = value;
         }
 
-        @Override
-        public int compareTo(K o) {
-            return this.key.compareTo(o);
-        }
     }
 
 
     //todo add balancing
     private void putin(TreeNode<K, V> branch, K key, V value) {
-        if (branch.key < key) {
-            if (leftSide == null) {
-                leftSide = new TreeNode<K, V>(key, value);
+        if (branch.key.compareTo(key) > 0) {
+            if (branch.leftSide == null) {
+                branch.leftSide = new TreeNode<>(key, value);
                 size++;
             } else {
-                putin(leftSide, key, value);
+                putin(branch.leftSide, key, value);
             }
-        } else if (branch.key > key.compareTo(branch.key)) {
-            if (rightSide == null) {
-                rightSide = new TreeNode<K, V>(key, value);
+        } else if (branch.key.compareTo(key) < 0) {
+            if (branch.rightSide == null) {
+                branch.rightSide = new TreeNode<>(key, value);
                 size++;
             } else {
-                putin(rightSide, key, value);
+                putin(branch.rightSide, key, value);
             }
         } else {
             branch.value = value;
@@ -64,24 +60,24 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
                 return true;
             }
             if (branch.leftSide != null) {
-                return containsKeyRecursive(leftSide, k);
+                return containsKeyRecursive(branch.leftSide, k);
             }
             if (branch.rightSide != null) {
-                return containsKeyRecursive(rightSide, k);
+                return containsKeyRecursive(branch.rightSide, k);
             }
         }
         return false;
     }
     private V getValueorDefaultRecursive(TreeNode<K, V> branch, Object k, V defaultValue) {
         if (branch != null) {
-            if (branch.key.equals(k)) {
+            if (branch.value.equals(k)) {
                 return branch.value;
             }
             if (branch.leftSide != null) {
-                return getValueorDefaultRecursive(leftSide, k, defaultValue);
+                return getValueorDefaultRecursive(branch.leftSide, k, defaultValue);
             }
             if (branch.rightSide != null) {
-                return getValueorDefaultRecursive(rightSide, k, defaultValue);
+                return getValueorDefaultRecursive(branch.rightSide, k, defaultValue);
             }
         }
         return defaultValue;
@@ -91,7 +87,7 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
 
     @Override
     public boolean containsValue(Object v) {
-        return getValueorDefaultRecursive(root, v, null) == null;
+        return getValueorDefaultRecursive(root, v, null) != null;
     }
 
     @Override
@@ -115,6 +111,7 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
             putin(this.root, k, v);
         } else {
             this.root = new TreeNode<>(k, v);
+            size++;
         }
         return v;
     }
@@ -132,10 +129,10 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
         if(cur != null){
             ans.add(cur.key);
             if(cur.leftSide != null);{
-                getAllKey(leftSide, ans);
+                getAllKey(cur.leftSide, ans);
             }
             if(cur.rightSide != null);{
-                getAllKey(rightSide, ans);
+                getAllKey(cur.rightSide, ans);
             }
         }
     }
@@ -151,10 +148,10 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
         if(cur != null){
             ans.add(cur.value);
             if(cur.leftSide != null);{
-                getAllValues(leftSide, ans);
+                getAllValues(cur.leftSide, ans);
             }
             if(cur.rightSide != null);{
-                getAllValues(rightSide, ans);
+                getAllValues(cur.rightSide, ans);
             }
         }
     }
@@ -166,12 +163,33 @@ public class TreeMap<K extends Comparable<K>, V> implements MyMap<K, V> {
 
     @Override
     public V remove(Object k) {
-        size++;
+        if(removeRecursive(root, k)) {
+            size--;
+        }
         return null;
+    }
+    //todo доделать удаление
+    private boolean removeRecursive(TreeNode<K,V> branch,Object k) {
+        if(branch.leftSide != null){
+            if(branch.leftSide.key.equals(k)){
+                return true;
+            }else{
+                removeRecursive(branch.leftSide, k);
+            }
+        }
+        if(branch.rightSide != null){
+            if(branch.rightSide.key.equals(k)){
+                return true;
+            }else{
+                removeRecursive(branch.rightSide, k);
+            }
+        }
+        return false;
     }
 
     @Override
     public int size() {
         return size;
     }
+
 }
